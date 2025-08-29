@@ -116,3 +116,28 @@ input.error::placeholder {
     display: flex;
     gap: 1rem;
 }
+
+.completed-tasks-container {
+    border: 1px solid #ccc;
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+.completed-tasks-container summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.completed-tasks-container[open] summary {
+    margin-bottom: 1rem;
+}
+
+#completed-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.undo-button {
+    background-color: #f39c12;
+}

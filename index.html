@@ -22,23 +22,15 @@
     <main>
         <h3>Tasks</h3>
         <div id="task-list">
-            <div class="task-item">
-                <h4>Task Title</h4>
-                <div class="task-item-nav">
-                    <button class="edit-button">Edit</button>
-                    <button class="done-button">Done</button>
-                    <button class="delete-button">Delete</button>
-                </div>
-            </div>
-            <div class="task-item">
-                <h4>Task Title</h4>
-                <div class="task-item-nav">
-                    <button class="edit-button">Edit</button>
-                    <button class="done-button">Done</button>
-                    <button class="delete-button">Delete</button>
-                </div>
-            </div>
+            <!-- Active tasks will be rendered here -->
         </div>
+
+        <details class="completed-tasks-container">
+            <summary>Completed Tasks</summary>
+            <div id="completed-task-list">
+                <!-- Completed tasks will be rendered here -->
+            </div>
+        </details>
     </main>
     <footer>
         <p>Developed by Aaron Varga</p>

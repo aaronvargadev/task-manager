@@ -2,47 +2,67 @@ import { getTasks, addTask, updateTask, deleteTask } from './idb.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const taskListOutput = document.getElementById('task-list');
+    const completedTaskListOutput = document.getElementById('completed-task-list');
     const newTaskInput = document.getElementById('new-task-title');
     const addButton = document.getElementById('add-button');
     let tasks = [];
 
     // --- Render Function ---
     const renderTasks = () => {
-        taskListOutput.innerHTML = '';
-        if (tasks.length === 0) {
-            taskListOutput.innerHTML = '<p>No tasks yet. Add one!</p>';
-            return;
-        }
-        tasks.forEach(task => {
-            const taskItem = document.createElement('div');
-            taskItem.className = `task-item ${task.status === 'complete' ? 'done' : ''}`;
-            taskItem.dataset.id = task.id;
-            taskItem.draggable = true;
+        const incompleteTasks = tasks.filter(task => task.status === 'incomplete');
+        const completedTasks = tasks.filter(task => task.status === 'complete');
 
-            taskItem.innerHTML = `
-                <h4 class="task-title">${task.title}</h4>
-                <div class="task-item-nav">
-                    <button class="edit-button">Edit</button>
-                    <button class="done-button">${task.status === 'complete' ? 'Undo' : 'Done'}</button>
-                    <button class="delete-button">Delete</button>
-                </div>
-            `;
-            taskListOutput.appendChild(taskItem);
-        });
+        // Render incomplete tasks
+        taskListOutput.innerHTML = '';
+        if (incompleteTasks.length === 0) {
+            taskListOutput.innerHTML = '<p>No active tasks. Add one!</p>';
+        } else {
+            incompleteTasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.dataset.id = task.id;
+                taskItem.draggable = true;
+                taskItem.innerHTML = `
+                    <h4 class="task-title">${task.title}</h4>
+                    <div class="task-item-nav">
+                        <button class="edit-button">Edit</button>
+                        <button class="done-button">Done</button>
+                        <button class="delete-button">Delete</button>
+                    </div>
+                `;
+                taskListOutput.appendChild(taskItem);
+            });
+        }
+
+        // Render completed tasks
+        completedTaskListOutput.innerHTML = '';
+        if (completedTasks.length === 0) {
+            completedTaskListOutput.innerHTML = '<p>No completed tasks yet.</p>';
+        } else {
+            completedTasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item done';
+                taskItem.dataset.id = task.id;
+                taskItem.innerHTML = `
+                    <h4 class="task-title">${task.title}</h4>
+                    <div class="task-item-nav">
+                        <button class="undo-button">Undo</button>
+                        <button class="delete-button">Delete</button>
+                    </div>
+                `;
+                completedTaskListOutput.appendChild(taskItem);
+            });
+        }
     };
 
     // --- Initial Load ---
     const loadTasks = async () => {
         try {
-            const dbTasks = await getTasks();
-            if (dbTasks.length > 0) {
-                tasks = dbTasks;
-            } else {
-                // If DB is empty, fetch from JSON and populate DB
+            tasks = await getTasks();
+            if (tasks.length === 0) {
                 const response = await fetch('data.json');
                 const data = await response.json();
                 tasks = data.tasks || [];
-                // Use Promise.all to wait for all addTask operations
                 await Promise.all(tasks.map(task => addTask(task)));
             }
             renderTasks();
@@ -62,25 +82,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             await addTask(newTask);
             tasks.push(newTask);
             newTaskInput.value = '';
-            newTaskInput.classList.remove('error'); // Remove error class on successful add
+            newTaskInput.classList.remove('error');
             renderTasks();
         } else {
-            // Show error validation
             newTaskInput.classList.add('error');
             newTaskInput.placeholder = 'Task title cannot be empty!';
         }
     });
 
-    // Clear error validation when user focuses on the input
     newTaskInput.addEventListener('focus', () => {
         if (newTaskInput.classList.contains('error')) {
             newTaskInput.classList.remove('error');
-            newTaskInput.placeholder = 'New Task Title'; // Reset placeholder
+            newTaskInput.placeholder = 'New Task Title';
         }
     });
 
-    // Handle clicks on task buttons (Edit, Done, Delete)
-    taskListOutput.addEventListener('click', async (e) => {
+    // Combined event listener for both lists
+    const handleTaskInteraction = async (e) => {
         const target = e.target;
         const taskItem = target.closest('.task-item');
         if (!taskItem) return;
@@ -96,11 +114,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderTasks();
         }
 
-        // Mark Task as Done/Undo
+        // Mark Task as Done
         if (target.classList.contains('done-button')) {
-            task.status = task.status === 'complete' ? 'incomplete' : 'complete';
+            task.status = 'complete';
             await updateTask(task);
+            renderTasks();
+        }
 
+        // Undo Task
+        if (target.classList.contains('undo-button')) {
+            task.status = 'incomplete';
+            await updateTask(task);
             renderTasks();
         }
 
@@ -120,7 +144,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 target.textContent = 'Edit';
             }
         }
-    });
+    };
+
+    taskListOutput.addEventListener('click', handleTaskInteraction);
+    completedTaskListOutput.addEventListener('click', handleTaskInteraction);
+
 
     // --- Drag and Drop Reordering ---
     taskListOutput.addEventListener('dragstart', e => {
@@ -150,14 +178,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     taskListOutput.addEventListener('drop', async () => {
         const newOrderedIds = [...taskListOutput.querySelectorAll('.task-item')].map(item => parseInt(item.dataset.id, 10));
+        const completedTasks = tasks.filter(t => t.status === 'complete');
+        const newIncompleteTasks = newOrderedIds.map(id => tasks.find(t => t.id === id)).filter(Boolean);
         
-        // Create a new tasks array in the correct order
-        const newTasks = newOrderedIds.map(id => tasks.find(t => t.id === id)).filter(Boolean);
-        tasks = newTasks;
+        tasks = [...newIncompleteTasks, ...completedTasks];
 
-        // Update the database. This is a simple approach. For large lists, more optimized updates would be better.
         await Promise.all(tasks.map(task => updateTask(task)));
-        renderTasks(); // Re-render to ensure UI is perfectly in sync with the data state
+        renderTasks();
     });
 
     function getDragAfterElement(container, y) {
@@ -177,4 +204,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Initialize ---
     loadTasks();
 });
-
