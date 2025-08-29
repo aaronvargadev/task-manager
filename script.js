@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const taskItem = document.createElement('div');
             taskItem.className = `task-item ${task.status === 'complete' ? 'done' : ''}`;
             taskItem.dataset.id = task.id;
+            taskItem.draggable = true;
 
             taskItem.innerHTML = `
                 <h4 class="task-title">${task.title}</h4>
@@ -120,6 +121,58 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
+
+    // --- Drag and Drop Reordering ---
+    taskListOutput.addEventListener('dragstart', e => {
+        if (e.target.classList.contains('task-item')) {
+            e.target.classList.add('dragging');
+        }
+    });
+
+    taskListOutput.addEventListener('dragend', e => {
+        if (e.target.classList.contains('task-item')) {
+            e.target.classList.remove('dragging');
+        }
+    });
+
+    taskListOutput.addEventListener('dragover', e => {
+        e.preventDefault();
+        const draggingItem = document.querySelector('.dragging');
+        if (!draggingItem) return;
+
+        const afterElement = getDragAfterElement(taskListOutput, e.clientY);
+        if (afterElement == null) {
+            taskListOutput.appendChild(draggingItem);
+        } else {
+            taskListOutput.insertBefore(draggingItem, afterElement);
+        }
+    });
+
+    taskListOutput.addEventListener('drop', async () => {
+        const newOrderedIds = [...taskListOutput.querySelectorAll('.task-item')].map(item => parseInt(item.dataset.id, 10));
+        
+        // Create a new tasks array in the correct order
+        const newTasks = newOrderedIds.map(id => tasks.find(t => t.id === id)).filter(Boolean);
+        tasks = newTasks;
+
+        // Update the database. This is a simple approach. For large lists, more optimized updates would be better.
+        await Promise.all(tasks.map(task => updateTask(task)));
+        renderTasks(); // Re-render to ensure UI is perfectly in sync with the data state
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
 
     // --- Initialize ---
     loadTasks();

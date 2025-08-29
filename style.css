@@ -73,11 +73,20 @@ button:hover {
     padding: 1rem;
     border-radius: 1rem;
     border: 1px solid #ccc;
+    cursor: grab;
+}
+
+.task-item:active {
+    cursor: grabbing;
 }
 
 .task-item.done h4 {
     text-decoration: line-through;
     color: #888;
+}
+
+.task-item.dragging {
+    opacity: 0.5;
 }
 
 input {
