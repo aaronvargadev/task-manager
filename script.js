@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Render Function ---
-    const renderTasks = () => {
+    function renderTasks() {
         const incompleteTasks = tasks.filter(task => task.status === 'incomplete');
         const completedTasks = tasks.filter(task => task.status === 'complete');
 
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Initial Load ---
-    const loadTasks = async () => {
+    async function loadTasks() {
         try {
             const { data, error } = await supabase
                 .from('tasks')
