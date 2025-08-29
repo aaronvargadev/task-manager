@@ -24,10 +24,33 @@ header {
     gap: 1rem;
 }
 
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-decoration: none;
+    color: #000;
+}
+
+#user-status a, #user-status button {
+    margin-left: 1rem;
+}
+
 main {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+a {
+    color: blue;
 }
 
 button {
@@ -119,7 +142,8 @@ input.error::placeholder {
 
 /* Auth Page Styles */
 .auth-container {
-    max-width: 400px;
+    max-width: 350px;
+    width: 100%;
     margin: 2rem auto;
     padding: 2rem;
     border: 1px solid #ccc;
@@ -129,7 +153,6 @@ input.error::placeholder {
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
 }
 
 .auth-form h3 {
@@ -137,15 +160,50 @@ input.error::placeholder {
     margin-bottom: 1rem;
 }
 
+.auth-form input {
+    margin-bottom: 1rem;
+}
+
+.auth-form button {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
 .auth-switch {
+    margin-top: .5rem;
     text-align: center;
-    margin-top: 1rem;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.auth-switch a {
+    display: block;
+    margin-top: 0.25rem;
 }
 
 #auth-message {
-    margin-top: 1rem;
-    color: red;
     text-align: center;
+}
+
+#auth-message:not(:empty) {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border: 1px solid transparent;
+    border-radius: .5rem;
+}
+
+.auth-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.auth-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
 }
 
 .completed-tasks-container {
@@ -172,3 +230,8 @@ input.error::placeholder {
 .undo-button {
     background-color: #f39c12;
 }
+
+.login-page header {
+    text-align: center;
+}
+

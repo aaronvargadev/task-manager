@@ -1,11 +1,52 @@
 import { supabase } from './supabase.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const userStatusDiv = document.getElementById('user-status');
     const taskListOutput = document.getElementById('task-list');
     const completedTaskListOutput = document.getElementById('completed-task-list');
     const newTaskInput = document.getElementById('new-task-title');
     const addButton = document.getElementById('add-button');
     let tasks = [];
+    let user = null;
+
+    // --- Auth State Change ---
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (session) {
+        user = session.user;
+        handleLoggedIn();
+    } else {
+        handleLoggedOut();
+    }
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+            user = session.user;
+            handleLoggedIn();
+        } else {
+            user = null;
+            handleLoggedOut();
+        }
+    });
+
+    function handleLoggedIn() {
+        userStatusDiv.innerHTML = `
+            <span>${user.email}</span>
+            <button id="logout-button">Logout</button>
+        `;
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/login.html';
+        });
+        loadTasks();
+    }
+
+    function handleLoggedOut() {
+        userStatusDiv.innerHTML = '<a href="/login.html">Login</a>';
+        // Redirect to login if not on the login page already
+        if (window.location.pathname !== '/login.html') {
+            window.location.href = '/login.html';
+        }
+    }
 
     // --- Render Function ---
     const renderTasks = () => {

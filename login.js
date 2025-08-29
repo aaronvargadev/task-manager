@@ -14,6 +14,7 @@ showSignup.addEventListener('click', (e) => {
     loginForm.style.display = 'none';
     signupForm.style.display = 'block';
     authMessage.textContent = '';
+    authMessage.className = '';
 });
 
 showLogin.addEventListener('click', (e) => {
@@ -21,6 +22,7 @@ showLogin.addEventListener('click', (e) => {
     signupForm.style.display = 'none';
     loginForm.style.display = 'block';
     authMessage.textContent = '';
+    authMessage.className = '';
 });
 
 // --- Sign Up ---
@@ -30,6 +32,7 @@ signupButton.addEventListener('click', async () => {
 
     if (!email || !password) {
         authMessage.textContent = 'Please provide both email and password.';
+        authMessage.className = 'auth-error';
         return;
     }
 
@@ -37,8 +40,10 @@ signupButton.addEventListener('click', async () => {
 
     if (error) {
         authMessage.textContent = `Signup failed: ${error.message}`;
+        authMessage.className = 'auth-error';
     } else {
         authMessage.textContent = 'Signup successful! Please check your email to verify your account.';
+        authMessage.className = 'auth-success';
         signupForm.reset();
     }
 });
@@ -50,6 +55,7 @@ loginButton.addEventListener('click', async () => {
 
     if (!email || !password) {
         authMessage.textContent = 'Please provide both email and password.';
+        authMessage.className = 'auth-error';
         return;
     }
 
@@ -57,6 +63,7 @@ loginButton.addEventListener('click', async () => {
 
     if (error) {
         authMessage.textContent = `Login failed: ${error.message}`;
+        authMessage.className = 'auth-error';
     } else {
         window.location.href = '/'; // Redirect to the main task page
     }
