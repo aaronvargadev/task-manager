@@ -80,6 +80,14 @@ button:hover {
     cursor: grabbing;
 }
 
+.task-item.editing {
+    cursor: default;
+}
+
+.task-item.editing .task-title {
+    cursor: text;
+}
+
 .task-item.done h4 {
     text-decoration: line-through;
     color: #888;
