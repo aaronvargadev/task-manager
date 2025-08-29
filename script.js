@@ -1,4 +1,4 @@
-import { getTasks, addTask, updateTask, deleteTask } from './idb.js';
+import { supabase } from './supabase.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const taskListOutput = document.getElementById('task-list');
@@ -58,13 +58,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Initial Load ---
     const loadTasks = async () => {
         try {
-            tasks = await getTasks();
-            if (tasks.length === 0) {
-                const response = await fetch('data.json');
-                const data = await response.json();
-                tasks = data.tasks || [];
-                await Promise.all(tasks.map(task => addTask(task)));
-            }
+            const { data, error } = await supabase
+                .from('tasks')
+                .select('*')
+                .order('id', { ascending: true });
+
+            if (error) throw error;
+            tasks = data || [];
             renderTasks();
         } catch (error) {
             console.error('Error loading tasks:', error);
@@ -78,9 +78,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     addButton.addEventListener('click', async () => {
         const title = newTaskInput.value.trim();
         if (title) {
-            const newTask = { id: Date.now(), title, status: 'incomplete' };
-            await addTask(newTask);
-            tasks.push(newTask);
+            const { data, error } = await supabase
+                .from('tasks')
+                .insert([{ title, status: 'incomplete' }])
+                .select();
+
+            if (error) {
+                console.error('Error adding task:', error);
+                return;
+            }
+            
+            if (data) {
+                tasks.push(data[0]);
+            }
+            
             newTaskInput.value = '';
             newTaskInput.classList.remove('error');
             renderTasks();
@@ -109,23 +120,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Delete Task
         if (target.classList.contains('delete-button')) {
-            await deleteTask(id);
-            tasks = tasks.filter(t => t.id !== id);
-            renderTasks();
+            const { error } = await supabase.from('tasks').delete().match({ id });
+            if (error) {
+                console.error('Error deleting task:', error);
+            } else {
+                tasks = tasks.filter(t => t.id !== id);
+                renderTasks();
+            }
         }
 
         // Mark Task as Done
         if (target.classList.contains('done-button')) {
             task.status = 'complete';
-            await updateTask(task);
-            renderTasks();
+            const { error } = await supabase.from('tasks').update({ status: 'complete' }).match({ id });
+            if (error) console.error('Error updating task:', error);
+            else renderTasks();
         }
 
         // Undo Task
         if (target.classList.contains('undo-button')) {
             task.status = 'incomplete';
-            await updateTask(task);
-            renderTasks();
+            const { error } = await supabase.from('tasks').update({ status: 'incomplete' }).match({ id });
+            if (error) console.error('Error updating task:', error);
+            else renderTasks();
         }
 
         // Edit Task
@@ -139,8 +156,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 target.textContent = 'Save';
             } else {
                 titleElement.contentEditable = false;
-                task.title = titleElement.textContent;
-                await updateTask(task);
+                const newTitle = titleElement.textContent;
+                task.title = newTitle;
+                const { error } = await supabase.from('tasks').update({ title: newTitle }).match({ id });
+                if (error) console.error('Error updating task:', error);
                 target.textContent = 'Edit';
             }
         }
@@ -183,7 +202,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         tasks = [...newIncompleteTasks, ...completedTasks];
 
-        await Promise.all(tasks.map(task => updateTask(task)));
+        // In a real app, you'd likely want to update a 'position' or 'order' column in the DB
+        // For simplicity, we are not persisting the order here.
         renderTasks();
     });
 

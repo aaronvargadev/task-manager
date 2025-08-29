@@ -117,6 +117,37 @@ input.error::placeholder {
     gap: 1rem;
 }
 
+/* Auth Page Styles */
+.auth-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid #ccc;
+    border-radius: 1rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth-form h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+#auth-message {
+    margin-top: 1rem;
+    color: red;
+    text-align: center;
+}
+
 .completed-tasks-container {
     border: 1px solid #ccc;
     border-radius: 1rem;
