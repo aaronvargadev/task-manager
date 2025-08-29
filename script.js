@@ -35,16 +35,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         document.getElementById('logout-button').addEventListener('click', async () => {
             await supabase.auth.signOut();
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
         });
         loadTasks();
     }
 
     function handleLoggedOut() {
-        userStatusDiv.innerHTML = '<a href="/login.html">Login</a>';
+        userStatusDiv.innerHTML = '<a href="login.html">Login</a>';
         // Redirect to login if not on the login page already
-        if (window.location.pathname !== '/login.html') {
-            window.location.href = '/login.html';
+        if (!window.location.pathname.endsWith('login.html')) {
+            window.location.href = 'login.html';
         }
     }
 

@@ -65,6 +65,6 @@ loginButton.addEventListener('click', async () => {
         authMessage.textContent = `Login failed: ${error.message}`;
         authMessage.className = 'auth-error';
     } else {
-        window.location.href = '/'; // Redirect to the main task page
+        window.location.href = 'index.html'; // Redirect to the main task page
     }
 });
