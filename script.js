@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const completedTaskListOutput = document.getElementById('completed-task-list');
     const newTaskInput = document.getElementById('new-task-title');
     const addButton = document.getElementById('add-button');
+    const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
     let tasks = [];
     let user = null;
 
@@ -30,13 +33,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function handleLoggedIn() {
         userStatusDiv.innerHTML = `
-            <span>${user.email}</span>
+            <div class="user-menu">
+                <span class="user-email">${user.email}</span>
+                <div class="user-menu-content">
+                    <button id="delete-account-btn">Delete Account</button>
+                </div>
+            </div>
             <button id="logout-button">Logout</button>
         `;
+
         document.getElementById('logout-button').addEventListener('click', async () => {
             await supabase.auth.signOut();
             window.location.href = 'login.html';
         });
+
+        document.getElementById('delete-account-btn').addEventListener('click', () => {
+            deleteConfirmModal.style.display = 'flex';
+        });
+
         loadTasks();
     }
 
@@ -261,6 +275,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
+
+    // --- Modal Event Listeners ---
+    cancelDeleteBtn.addEventListener('click', () => {
+        deleteConfirmModal.style.display = 'none';
+    });
+
+    confirmDeleteBtn.addEventListener('click', async () => {
+        try {
+            // Supabase doesn't have a direct "delete user" client-side function
+            // for security reasons. This requires a server-side call.
+            // We will create a Supabase Edge Function for this.
+            const { error } = await supabase.functions.invoke('delete-user');
+
+            if (error) throw error;
+
+            alert('Account deleted successfully.');
+            await supabase.auth.signOut();
+            // The onAuthStateChange listener will handle the redirect.
+            deleteConfirmModal.style.display = 'none';
+
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            alert(`Failed to delete account: ${error.message}`);
+            deleteConfirmModal.style.display = 'none';
+        }
+    });
 
     // --- Initialize ---
     loadTasks();
