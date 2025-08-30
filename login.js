@@ -1,6 +1,22 @@
-import { supabase } from './supabase.js';
+import { supabase } from './supabase.js';    if (error) {
+        authMessage.textContent = `Signup failed: ${error.message}`;
+        authMessage.className = 'auth-error';
+    } else {
+        // With email confirmation disabled, we can log the user in directly.
+        authMessage.textContent = 'Signup successful! Logging in...';
+        authMessage.className = 'auth-success';
+        
+        // Sign in the user immediately after successful signup
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
-const loginForm = document.getElementById('login-form');
+        if (signInError) {
+            authMessage.textContent = `Login after signup failed: ${signInError.message}`;
+            authMessage.className = 'auth-error';
+        } else {
+            signupForm.reset();
+            window.location.href = 'dashboard.html';
+        }
+    }nForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form');
 const showSignup = document.getElementById('show-signup');
 const showLogin = document.getElementById('show-login');
