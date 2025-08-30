@@ -178,6 +178,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Add task on Enter key press
+    newTaskInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission if it were in a form
+            addButton.click(); // Trigger the add button's click event
+        }
+    });
+
     // Combined event listener for both lists
     const handleTaskInteraction = async (e) => {
         const target = e.target;

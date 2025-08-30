@@ -271,6 +271,9 @@ input.error::placeholder {
     text-align: center;
     max-width: 400px;
     width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
 }
 
 .modal-actions {
