@@ -1,8 +1,8 @@
-const CACHE_NAME = 'task-manager-v2'; // Bump version to ensure update
+const CACHE_NAME = 'task-manager-v3'; // Bump version to ensure update
 const urlsToCache = [
   './',
-  'index.html',
-  'login.html',
+  'index.html', // This is the login page now
+  'dashboard.html', // This is the main app page
   'style.css',
   'script.js',
   'login.js',

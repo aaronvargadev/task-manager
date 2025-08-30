@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('logout-button').addEventListener('click', async () => {
             await supabase.auth.signOut();
-            window.location.href = 'login.html';
+            // The onAuthStateChange listener below will handle the redirect.
         });
 
         document.getElementById('delete-account-btn').addEventListener('click', () => {
@@ -55,11 +55,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function handleLoggedOut() {
-        userStatusDiv.innerHTML = '<a href="login.html">Login</a>';
-        // Redirect to login if not on the login page already
-        if (!window.location.pathname.endsWith('login.html')) {
-            window.location.href = 'login.html';
-        }
+        // This script runs on dashboard.html. If the user is logged out,
+        // they should be redirected to the login page (index.html).
+        window.location.href = 'index.html';
     }
 
     // --- Render Function ---
