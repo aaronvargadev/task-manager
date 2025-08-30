@@ -1,56 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager &mdash; Developed by Aaron Varga</title>
+    <title>Login / Sign Up &RightArrow; Task Manager &mdash; Developed by Aaron Varga</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
-
-<body>
+<body class="login-page">
     <header>
-        <nav>
-            <a href="index.html" class="logo">Task Manager</a>
-            <div id="user-status">
-                <!-- This will be populated by script.js -->
-            </div>
-        </nav>
-        <div class="add-task-form">
-            <input type="text" id="new-task-title" placeholder="New Task Title">
-            <button id="add-button">Add&nbsp;Task</button>
-        </div>
+        <h1>Task Manager</h1>
     </header>
     <main>
-        <h3>Tasks</h3>
-        <div id="task-list">
-            <!-- Active tasks will be rendered here -->
-        </div>
+        <div class="auth-container">
+            <form class="auth-form" id="login-form">
+                <h3>Login</h3>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button id="login-button">Login</button>
+                <p class="auth-switch">Don't have an account? <a href="#" id="show-signup">Sign Up</a></p>
+            </form>
 
-        <details class="completed-tasks-container">
-            <summary>Completed Tasks</summary>
-            <div id="completed-task-list">
-                <!-- Completed tasks will be rendered here -->
-            </div>
-        </details>
-    </main>
-    <footer>
-        <p>Developed by Aaron Varga</p>
-    </footer>
-    <div id="delete-confirm-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2>Are you sure?</h2>
-            <p>This action is irreversible. All your tasks will be permanently deleted.</p>
-            <div class="modal-actions">
-                <button id="confirm-delete-btn">Yes, Delete My Account</button>
-                <button id="cancel-delete-btn">Cancel</button>
-            </div>
+            <form class="auth-form" id="signup-form" style="display: none;">
+                <h3>Sign Up</h3>
+                <input type="email" id="signup-email" placeholder="Email" required>
+                <input type="password" id="signup-password" placeholder="Password" required>
+                <button id="signup-button">Sign Up</button>
+                <p class="auth-switch">Already have an account? <a href="#" id="show-login">Login</a></p>
+            </form>
+            <div id="auth-message"></div>
         </div>
-    </div>
-    <script src="script.js" type="module" defer></script>
+    </main>
+    <script src="login.js" type="module"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -65,5 +48,4 @@
         }
     </script>
 </body>
-
 </html>
