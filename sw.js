@@ -1,4 +1,4 @@
-const CACHE_NAME = 'task-manager-v1';
+const CACHE_NAME = 'task-manager-v2'; // Bump version to ensure update
 const urlsToCache = [
   './',
   'index.html',
@@ -12,7 +12,6 @@ const urlsToCache = [
   'icons/icon-512x512.png'
 ];
 
-// Install the service worker and cache the static assets
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -23,23 +22,29 @@ self.addEventListener('install', event => {
   );
 });
 
-// Serve cached content when offline
 self.addEventListener('fetch', event => {
+  // Use Stale-While-Revalidate strategy
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        // Not in cache - fetch from network
-        return fetch(event.request);
-      }
-    )
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(response => {
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          // If we got a valid response, update the cache
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        }).catch(err => {
+          // Fetch failed, probably offline, do nothing.
+          console.log('Fetch failed; returning offline page instead.', err);
+        });
+
+        // Return the cached response immediately, while the fetch happens in the background.
+        return response || fetchPromise;
+      });
+    })
   );
 });
 
-// Update the cache when the service worker is activated
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -47,6 +52,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // Delete old caches
             return caches.delete(cacheName);
           }
         })
