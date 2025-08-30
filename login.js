@@ -1,75 +1,77 @@
 import { supabase } from './supabase.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const signupForm = document.getElementById('signup-form');
-    const toggleToSignup = document.getElementById('toggle-to-signup');
-    const toggleToLogin = document.getElementById('toggle-to-login');
+const loginForm = document.getElementById('login-form');
+const signupForm = document.getElementById('signup-form');
+const showSignup = document.getElementById('show-signup');
+const showLogin = document.getElementById('show-login');
+const loginButton = document.getElementById('login-button');
+const signupButton = document.getElementById('signup-button');
+const authMessage = document.getElementById('auth-message');
 
-    const loginError = document.getElementById('login-error');
-    const signupError = document.getElementById('signup-error');
+// --- Toggle Forms ---
+showSignup.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+    authMessage.textContent = '';
+    authMessage.className = '';
+});
 
-    // --- Toggle Forms ---
-    toggleToSignup.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginForm.style.display = 'none';
-        toggleToSignup.style.display = 'none';
-        signupForm.style.display = 'block';
-        toggleToLogin.style.display = 'inline';
-        loginError.textContent = '';
-    });
+showLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    signupForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    authMessage.textContent = '';
+    authMessage.className = '';
+});
 
-    toggleToLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        signupForm.style.display = 'none';
-        toggleToLogin.style.display = 'none';
-        loginForm.style.display = 'block';
-        toggleToSignup.style.display = 'inline';
-        signupError.textContent = '';
-    });
+// --- Sign Up ---
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
 
-    // --- Sign Up ---
-    signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        signupError.textContent = '';
+    if (!email || !password) {
+        authMessage.textContent = 'Please provide both email and password.';
+        authMessage.className = 'auth-error';
+        return;
+    }
 
-        const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-        if (error) {
-            signupError.textContent = error.message;
-        } else if (data.user) {
-            // Since email confirmation is off, log them in right away
-            const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-            if (signInError) {
-                signupError.textContent = signInError.message;
-            } else {
-                window.location.href = 'index.html';
-            }
-        }
-    });
+    if (error) {
+        authMessage.textContent = `Signup failed: ${error.message}`;
+        authMessage.className = 'auth-error';
+    } else {
+        // With email confirmation disabled, we can log the user in directly.
+        authMessage.textContent = 'Signup successful! Redirecting...';
+        authMessage.className = 'auth-success';
+        signupForm.reset();
+        // Manually set the session to log the user in, then redirect
+        await supabase.auth.setSession(data.session);
+        window.location.href = 'index.html';
+    }
+});
 
-    // --- Login ---
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        loginError.textContent = '';
+// --- Login ---
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
 
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!email || !password) {
+        authMessage.textContent = 'Please provide both email and password.';
+        authMessage.className = 'auth-error';
+        return;
+    }
 
-        if (error) {
-            loginError.textContent = error.message;
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    // Auto-redirect if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-            window.location.href = 'index.html';
-        }
-    });
+    if (error) {
+        authMessage.textContent = `Login failed: ${error.message}`;
+        authMessage.className = 'auth-error';
+    } else {
+        loginForm.reset();
+        window.location.href = 'index.html'; // Redirect to the main task page
+    }
 });
