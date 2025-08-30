@@ -13,25 +13,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     let user = null;
 
     // --- Auth State Change ---
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Get the session on initial load.
+    const { data: { session } } = await supabase.auth.getSession();
     if (session) {
+        // If a session exists, treat the user as logged in.
         user = session.user;
         handleLoggedIn();
-    } else {
-        handleLoggedOut();
     }
+    // We don't handle the 'else' case here. Instead, we wait for the SIGNED_OUT event
+    // in onAuthStateChange to prevent a race condition on redirect.
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-        if (session) {
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+            // If the user is signed out, redirect to the login page.
+            user = null;
+            window.location.href = 'index.html';
+        } else if (session) {
+            // If a session is active, handle the logged-in state.
             user = session.user;
             handleLoggedIn();
-        } else {
-            user = null;
-            handleLoggedOut();
         }
     });
 
     function handleLoggedIn() {
+        // Only proceed if the user object is available
+        if (!user) return;
+
         userStatusDiv.innerHTML = `
             <div class="user-menu">
                 <span class="user-email">${user.email}</span>
@@ -44,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('logout-button').addEventListener('click', async () => {
             await supabase.auth.signOut();
-            // The onAuthStateChange listener below will handle the redirect.
+            // The onAuthStateChange listener above will handle the redirect.
         });
 
         document.getElementById('delete-account-btn').addEventListener('click', () => {
@@ -54,11 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadTasks();
     }
 
-    function handleLoggedOut() {
-        // This script runs on dashboard.html. If the user is logged out,
-        // they should be redirected to the login page (index.html).
-        window.location.href = 'index.html';
-    }
+    // This function is no longer needed as redirection is handled by onAuthStateChange
+    // function handleLoggedOut() { ... }
 
     // --- Render Function ---
     function renderTasks() {
