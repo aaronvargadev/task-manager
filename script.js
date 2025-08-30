@@ -77,14 +77,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 taskItem.className = 'task-item';
                 taskItem.dataset.id = task.id;
                 taskItem.draggable = true;
-                taskItem.innerHTML = `
-                    <h4 class="task-title">${task.title}</h4>
-                    <div class="task-item-nav">
-                        <button class="edit-button">Edit</button>
-                        <button class="done-button">Done</button>
-                        <button class="delete-button">Delete</button>
-                    </div>
+
+                const title = document.createElement('h4');
+                title.className = 'task-title';
+                title.textContent = task.title; // Safely set text content
+
+                const nav = document.createElement('div');
+                nav.className = 'task-item-nav';
+                nav.innerHTML = `
+                    <button class="edit-button">Edit</button>
+                    <button class="done-button">Done</button>
+                    <button class="delete-button">Delete</button>
                 `;
+
+                taskItem.appendChild(title);
+                taskItem.appendChild(nav);
                 taskListOutput.appendChild(taskItem);
             });
         }
@@ -98,13 +105,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const taskItem = document.createElement('div');
                 taskItem.className = 'task-item done';
                 taskItem.dataset.id = task.id;
-                taskItem.innerHTML = `
-                    <h4 class="task-title">${task.title}</h4>
-                    <div class="task-item-nav">
-                        <button class="undo-button">Undo</button>
-                        <button class="delete-button">Delete</button>
-                    </div>
+
+                const title = document.createElement('h4');
+                title.className = 'task-title';
+                title.textContent = task.title; // Safely set text content
+
+                const nav = document.createElement('div');
+                nav.className = 'task-item-nav';
+                nav.innerHTML = `
+                    <button class="undo-button">Undo</button>
+                    <button class="delete-button">Delete</button>
                 `;
+
+                taskItem.appendChild(title);
+                taskItem.appendChild(nav);
                 completedTaskListOutput.appendChild(taskItem);
             });
         }
@@ -113,6 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Initial Load ---
     async function loadTasks() {
         try {
+            // Only select tasks belonging to the current user
             const { data, error } = await supabase
                 .from('tasks')
                 .select('*')
@@ -125,7 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error loading tasks:', error);
             taskListOutput.innerHTML = '<p>Error loading data.</p>';
         }
-    };
+    }
 
     // --- Event Listeners ---
 
@@ -303,5 +318,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- Initialize ---
-    loadTasks();
+    // No initial load needed here, it's handled by the auth state change listener
 });
