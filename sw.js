@@ -1,4 +1,4 @@
-const CACHE_NAME = 'task-manager-v3'; // Bump version to ensure update
+const CACHE_NAME = 'task-manager-v5'; // Bump version to ensure update
 const urlsToCache = [
   './',
   'index.html', // This is the login page now
@@ -23,7 +23,12 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Use Stale-While-Revalidate strategy
+  // Ignore non-GET requests to prevent caching POST, etc.
+  if (event.request.method !== 'GET') {
+    return; // Let the browser handle it
+  }
+
+  // Use Stale-While-Revalidate strategy for GET requests
   event.respondWith(
     caches.open(CACHE_NAME).then(cache => {
       return cache.match(event.request).then(response => {
@@ -34,8 +39,8 @@ self.addEventListener('fetch', event => {
           }
           return networkResponse;
         }).catch(err => {
-          // Fetch failed, probably offline, do nothing.
-          console.log('Fetch failed; returning offline page instead.', err);
+          console.error('SW Fetch failed:', err);
+          // If fetch fails (e.g., offline) and there's no cache, the browser will show its default error page.
         });
 
         // Return the cached response immediately, while the fetch happens in the background.

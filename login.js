@@ -1,22 +1,23 @@
-import { supabase } from './supabase.js';    if (error) {
-        authMessage.textContent = `Signup failed: ${error.message}`;
-        authMessage.className = 'auth-error';
-    } else {
-        // With email confirmation disabled, we can log the user in directly.
-        authMessage.textContent = 'Signup successful! Logging in...';
-        authMessage.className = 'auth-success';
-        
-        // Sign in the user immediately after successful signup
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+import { supabase } from './supabase.js';
 
-        if (signInError) {
-            authMessage.textContent = `Login after signup failed: ${signInError.message}`;
-            authMessage.className = 'auth-error';
-        } else {
-            signupForm.reset();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Check if the user is already logged in
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (session) {
+            // If logged in, redirect to the main application dashboard
             window.location.href = 'dashboard.html';
+            return; // Stop further execution of this script
         }
-    }nForm = document.getElementById('login-form');
+    } catch (error) {
+        console.error('Error checking session:', error.message);
+        // Don't redirect, just let the user try to log in manually.
+    }
+});
+
+const loginForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form');
 const showSignup = document.getElementById('show-signup');
 const showLogin = document.getElementById('show-login');
@@ -60,12 +61,19 @@ signupForm.addEventListener('submit', async (e) => {
         authMessage.className = 'auth-error';
     } else {
         // With email confirmation disabled, we can log the user in directly.
-        authMessage.textContent = 'Signup successful! Redirecting...';
+        authMessage.textContent = 'Signup successful! Logging in...';
         authMessage.className = 'auth-success';
-        signupForm.reset();
-        // Manually set the session to log the user in, then redirect
-        await supabase.auth.setSession(data.session);
-        window.location.href = 'index.html';
+        
+        // Sign in the user immediately after successful signup
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (signInError) {
+            authMessage.textContent = `Login after signup failed: ${signInError.message}`;
+            authMessage.className = 'auth-error';
+        } else {
+            signupForm.reset();
+            window.location.href = 'dashboard.html';
+        }
     }
 });
 
