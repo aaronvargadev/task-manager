@@ -7,6 +7,7 @@ const urlsToCache = [
   'script.js',
   'login.js',
   'supabase.js',
+  'favicon.ico',
   'icons/icon-192x192.png',
   'icons/icon-512x512.png'
 ];
