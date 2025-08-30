@@ -226,19 +226,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Edit Task
         if (target.classList.contains('edit-button')) {
             const titleElement = taskItem.querySelector('.task-title');
-            const isEditing = taskItem.classList.toggle('editing');
 
-            if (isEditing) {
+            const saveChanges = async () => {
+                titleElement.contentEditable = false;
+                taskItem.classList.remove('editing'); // Explicitly remove class
+                const newTitle = titleElement.textContent.trim();
+
+                if (newTitle && newTitle !== task.title) {
+                    const { error } = await supabase.from('tasks').update({ title: newTitle }).match({ id });
+                    if (error) {
+                        console.error('Error updating task:', error);
+                        titleElement.textContent = task.title; // Revert on error
+                    } else {
+                        task.title = newTitle;
+                    }
+                } else {
+                    // If title is empty or unchanged, just revert to original
+                    titleElement.textContent = task.title;
+                }
+
+                target.textContent = 'Edit';
+                titleElement.removeEventListener('keydown', handleKeydown);
+            };
+
+            const handleKeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveChanges();
+                } else if (e.key === 'Escape') {
+                    titleElement.textContent = task.title; // Revert changes
+                    saveChanges(); // Exit edit mode
+                }
+            };
+
+            if (!taskItem.classList.contains('editing')) {
+                // --- ENTERING EDIT MODE ---
+                taskItem.classList.add('editing');
                 titleElement.contentEditable = true;
+                
+                // Select text for easy replacement
+                const range = document.createRange();
+                range.selectNodeContents(titleElement);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
                 titleElement.focus();
                 target.textContent = 'Save';
+
+                titleElement.addEventListener('keydown', handleKeydown);
             } else {
-                titleElement.contentEditable = false;
-                const newTitle = titleElement.textContent;
-                task.title = newTitle;
-                const { error } = await supabase.from('tasks').update({ title: newTitle }).match({ id });
-                if (error) console.error('Error updating task:', error);
-                target.textContent = 'Edit';
+                // --- EXITING EDIT MODE (via Save button click) ---
+                saveChanges();
             }
         }
     };
