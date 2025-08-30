@@ -14,24 +14,32 @@
         <h1>Task Manager</h1>
     </header>
     <main>
-        <div class="auth-container">
-            <form class="auth-form" id="login-form">
-                <h3>Login</h3>
+            <div class="container">
+        <div id="auth-container">
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <h2>Login</h2>
                 <input type="email" id="login-email" placeholder="Email" required>
                 <input type="password" id="login-password" placeholder="Password" required>
-                <button id="login-button">Login</button>
-                <p class="auth-switch">Don't have an account? <a href="#" id="show-signup">Sign Up</a></p>
+                <button type="submit" id="login-button">Login</button>
+                <p id="login-error" class="error-message"></p>
             </form>
 
-            <form class="auth-form" id="signup-form" style="display: none;">
-                <h3>Sign Up</h3>
+            <!-- Sign Up Form -->
+            <form id="signup-form" class="auth-form" style="display: none;">
+                <h2>Sign Up</h2>
                 <input type="email" id="signup-email" placeholder="Email" required>
                 <input type="password" id="signup-password" placeholder="Password" required>
-                <button id="signup-button">Sign Up</button>
-                <p class="auth-switch">Already have an account? <a href="#" id="show-login">Login</a></p>
+                <button type="submit" id="signup-button">Sign Up</button>
+                <p id="signup-error" class="error-message"></p>
             </form>
-            <div id="auth-message"></div>
+
+            <p class="toggle-form">
+                <span id="toggle-to-signup">Don't have an account? Sign Up</span>
+                <span id="toggle-to-login" style="display: none;">Have an account? Login</span>
+            </p>
         </div>
+    </div>
     </main>
     <script src="login.js" type="module"></script>
     <script>
