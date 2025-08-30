@@ -1,84 +1,77 @@
 import { supabase } from './supabase.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const authForm = document.getElementById('auth-form');
-    const authTitle = document.getElementById('auth-title');
-    const authButton = document.getElementById('auth-button');
-    const authSwitchText = document.getElementById('auth-switch-text');
-    const passwordInput = document.getElementById('auth-password');
-    const authMessage = document.getElementById('auth-message');
+const loginForm = document.getElementById('login-form');
+const signupForm = document.getElementById('signup-form');
+const showSignup = document.getElementById('show-signup');
+const showLogin = document.getElementById('show-login');
+const loginButton = document.getElementById('login-button');
+const signupButton = document.getElementById('signup-button');
+const authMessage = document.getElementById('auth-message');
 
-    let isLoginMode = true;
+// --- Toggle Forms ---
+showSignup.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+    authMessage.textContent = '';
+    authMessage.className = '';
+});
 
-    function toggleMode() {
-        isLoginMode = !isLoginMode;
-        authMessage.textContent = '';
-        authMessage.className = '';
-        authForm.reset();
+showLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    signupForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    authMessage.textContent = '';
+    authMessage.className = '';
+});
 
-        if (isLoginMode) {
-            authTitle.textContent = 'Login';
-            authButton.textContent = 'Login';
-            authSwitchText.innerHTML = 'Don\'t have an account? <a href="#" id="switch-to-signup">Sign Up</a>';
-            passwordInput.setAttribute('autocomplete', 'current-password');
-        } else {
-            authTitle.textContent = 'Sign Up';
-            authButton.textContent = 'Sign Up';
-            authSwitchText.innerHTML = 'Already have an account? <a href="#" id="switch-to-login">Login</a>';
-            passwordInput.setAttribute('autocomplete', 'new-password');
-        }
-        
-        // Re-attach the event listener to the new link
-        attachSwitchListener();
+// --- Sign Up ---
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+
+    if (!email || !password) {
+        authMessage.textContent = 'Please provide both email and password.';
+        authMessage.className = 'auth-error';
+        return;
     }
 
-    function attachSwitchListener() {
-        const switchLink = isLoginMode ? document.getElementById('switch-to-signup') : document.getElementById('switch-to-login');
-        if (switchLink) {
-            switchLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleMode();
-            });
-        }
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+        authMessage.textContent = `Signup failed: ${error.message}`;
+        authMessage.className = 'auth-error';
+    } else {
+        // With email confirmation disabled, we can log the user in directly.
+        authMessage.textContent = 'Signup successful! Redirecting...';
+        authMessage.className = 'auth-success';
+        signupForm.reset();
+        // Manually set the session to log the user in, then redirect
+        await supabase.auth.setSession(data.session);
+        window.location.href = 'index.html';
+    }
+});
+
+// --- Login ---
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    if (!email || !password) {
+        authMessage.textContent = 'Please provide both email and password.';
+        authMessage.className = 'auth-error';
+        return;
     }
 
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('auth-email').value;
-        const password = passwordInput.value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-        if (!email || !password) {
-            authMessage.textContent = 'Please provide both email and password.';
-            authMessage.className = 'auth-error';
-            return;
-        }
-
-        let response;
-        if (isLoginMode) {
-            response = await supabase.auth.signInWithPassword({ email, password });
-        } else {
-            response = await supabase.auth.signUp({ email, password });
-        }
-
-        const { error, data } = response;
-
-        if (error) {
-            authMessage.textContent = `${isLoginMode ? 'Login' : 'Signup'} failed: ${error.message}`;
-            authMessage.className = 'auth-error';
-        } else {
-            authMessage.textContent = `${isLoginMode ? 'Login' : 'Signup'} successful! Redirecting...`;
-            authMessage.className = 'auth-success';
-            authForm.reset();
-            
-            // If it was a signup, Supabase might send a session back directly
-            if (!isLoginMode && data.session) {
-                 await supabase.auth.setSession(data.session);
-            }
-
-            window.location.href = 'index.html';
-        }
-    });
-
-    // Initial setup
-    attachSwitchListener();
+    if (error) {
+        authMessage.textContent = `Login failed: ${error.message}`;
+        authMessage.className = 'auth-error';
+    } else {
+        loginForm.reset();
+        window.location.href = 'index.html'; // Redirect to the main task page
+    }
 });
