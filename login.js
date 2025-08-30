@@ -26,7 +26,8 @@ showLogin.addEventListener('click', (e) => {
 });
 
 // --- Sign Up ---
-signupButton.addEventListener('click', async () => {
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
 
@@ -36,20 +37,25 @@ signupButton.addEventListener('click', async () => {
         return;
     }
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
         authMessage.textContent = `Signup failed: ${error.message}`;
         authMessage.className = 'auth-error';
     } else {
-        authMessage.textContent = 'Signup successful! Please check your email to verify your account.';
+        // With email confirmation disabled, we can log the user in directly.
+        authMessage.textContent = 'Signup successful! Redirecting...';
         authMessage.className = 'auth-success';
         signupForm.reset();
+        // Manually set the session to log the user in, then redirect
+        await supabase.auth.setSession(data.session);
+        window.location.href = 'index.html';
     }
 });
 
 // --- Login ---
-loginButton.addEventListener('click', async () => {
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
@@ -65,6 +71,7 @@ loginButton.addEventListener('click', async () => {
         authMessage.textContent = `Login failed: ${error.message}`;
         authMessage.className = 'auth-error';
     } else {
+        loginForm.reset();
         window.location.href = 'index.html'; // Redirect to the main task page
     }
 });
